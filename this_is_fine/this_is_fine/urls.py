@@ -16,7 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from . import views  # Import views directly from the current folder
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls),  # Admin URL
+    path('map/', views.map_view, name='map_view'),  # Direct URL routing to the map view
 ]
