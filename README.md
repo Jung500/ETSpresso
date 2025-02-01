@@ -1,1 +1,3 @@
-# ETSpresso
+```
+py -m pip install django
+```
