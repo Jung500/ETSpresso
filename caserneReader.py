@@ -65,3 +65,4 @@ def create_fire_map(hydrants, fire_stations, map_filename="fire_map.html"):
     # Save the updated map
     m.save(map_filename)
     print(f"Map saved as {map_filename}")
+    

@@ -1,9 +1,6 @@
 import csv
 import folium
 
-# Define the file path
-file_path = "aqu_borneincendie.csv"  # Replace with your actual file path
-
 def read_hydrant_data(file_path):
     hydrants = []
 
@@ -16,7 +13,7 @@ def read_hydrant_data(file_path):
                 lat = float(row["LATITUDE"])
                 lon = float(row["LONGITUDE"])
                 hydrants.append({
-                    "Address": row["ADRESSE"],
+                    "Address": row["\ufeffADRESSE"],
                     "Jurisdiction": row["JURIDICTION"],
                     "Owner": row["PROPRIETAIRE"],
                     "Installation Date": row["DATE_INSTALLATION"],
