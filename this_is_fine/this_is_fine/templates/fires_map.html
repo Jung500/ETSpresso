@@ -1,55 +1,54 @@
-<!-- this_is_fine/this_is_fine/templates/fires_map.html -->
+<!-- this_is_fine/templates/fires_map.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>One Fire at a Time</title>
+    <title>Add/Remove Fires + 3 Hydrants + OSRM Routes</title>
     <style>
+      body {
+        margin: 0; 
+        padding: 0;
+      }
       #map {
         width: 100%;
-        height: 600px;
+        height: 100vh;
         position: relative;
       }
-      /* Container on top-right for 2 buttons */
-      #top-right-buttons {
+      #top-right {
         position: absolute;
         top: 10px;
         right: 10px;
-        z-index: 9999; /* on top of folium map */
-        background: rgba(255, 255, 255, 0.8);
-        padding: 8px;
-        border-radius: 4px;
+        z-index: 9999;
+        background: rgba(255,255,255,0.8);
+        padding: 10px;
+        border-radius: 5px;
       }
-      #top-right-buttons a {
+      #top-right a {
         display: block;
-        margin-bottom: 5px;
+        text-align: center;
         text-decoration: none;
         background: #eee;
-        padding: 6px;
         color: #333;
+        margin-bottom: 6px;
+        padding: 6px;
         border: 1px solid #ccc;
-        text-align: center;
-        width: 100px;
+        width: 90px;
       }
-      #top-right-buttons a:hover {
+      #top-right a:hover {
         background: #ddd;
       }
     </style>
 </head>
 <body>
-    <h1>Add 1 Fire / Clear All</h1>
-
-    <div id="map">
-        <!-- Two links pinned top-right -->
-        <div id="top-right-buttons">
-          <!-- "Add Fire" triggers ?action=add, same route, so it refreshes with one extra fire -->
-          <a href="?action=add">Add Fire</a>
-          <a href="?action=clear">Clear Fires</a>
-        </div>
-
-        <!-- Folium's map HTML goes here -->
-        {{ map_html|safe }}
+  <div id="map">
+    <!-- Two top-right links: ?action=add, ?action=clear -->
+    <div id="top-right">
+      <a href="?action=add">Add Fire</a>
+      <a href="?action=clear">Clear Fires</a>
     </div>
 
+    <!-- Insert Folium's map HTML here -->
+    {{ map_html|safe }}
+  </div>
 </body>
 </html>
