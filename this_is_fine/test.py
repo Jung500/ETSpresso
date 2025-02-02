@@ -1,5 +1,5 @@
 import randomPointsGenerator
-import fireHydrantReader as hydrantReader
+import this_is_fine.fireHydrantReader as hydrantReader
 import caserneReader as stationReader
 
 # Filenames for your CSV data

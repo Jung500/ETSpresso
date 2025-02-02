@@ -113,6 +113,7 @@ USE_I18N = True
 
 USE_TZ = True
 
+WSGI_APPLICATION = 'this_is_fine.wsgi.application'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/

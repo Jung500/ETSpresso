@@ -1,11 +1,13 @@
-<!-- this_is_fine/templates/fires_map.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Fires + AI Severity</title>
+    <title>2 Fires = 1 Station (Pairs) + ML Severity</title>
     <style>
-      body { margin: 0; padding: 0; }
+      body {
+        margin: 0; 
+        padding: 0;
+      }
       #map {
         width: 100%;
         height: 100vh;
@@ -42,6 +44,7 @@
       <a href="?action=add">Add Fire</a>
       <a href="?action=clear">Clear Fires</a>
     </div>
+
     {{ map_html|safe }}
   </div>
 </body>
