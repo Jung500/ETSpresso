@@ -1,10 +1,11 @@
+<!-- this_is_fine/this_is_fine/templates/map.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Folium Map</title>
     <style>
+        /* Adjust these for your preferred size */
         #map {
             width: 100%;
             height: 500px;
@@ -12,7 +13,9 @@
     </style>
 </head>
 <body>
-    <h1>Fire hydrants</h1>
+    <h1>Combined Fire Stations + Hydrants</h1>
+    
+    <!-- This is where we place the Folium map HTML -->
     <div id="map">
         {{ map_html|safe }}
     </div>

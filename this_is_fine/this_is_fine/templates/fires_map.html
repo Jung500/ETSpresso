@@ -1,0 +1,54 @@
+<!-- this_is_fine/templates/fires_map.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Add/Remove Fires + 3 Hydrants + OSRM Routes</title>
+    <style>
+      body {
+        margin: 0; 
+        padding: 0;
+      }
+      #map {
+        width: 100%;
+        height: 100vh;
+        position: relative;
+      }
+      #top-right {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 9999;
+        background: rgba(255,255,255,0.8);
+        padding: 10px;
+        border-radius: 5px;
+      }
+      #top-right a {
+        display: block;
+        text-align: center;
+        text-decoration: none;
+        background: #eee;
+        color: #333;
+        margin-bottom: 6px;
+        padding: 6px;
+        border: 1px solid #ccc;
+        width: 90px;
+      }
+      #top-right a:hover {
+        background: #ddd;
+      }
+    </style>
+</head>
+<body>
+  <div id="map">
+    <!-- Two top-right links: ?action=add, ?action=clear -->
+    <div id="top-right">
+      <a href="?action=add">Add Fire</a>
+      <a href="?action=clear">Clear Fires</a>
+    </div>
+
+    <!-- Insert Folium's map HTML here -->
+    {{ map_html|safe }}
+  </div>
+</body>
+</html>

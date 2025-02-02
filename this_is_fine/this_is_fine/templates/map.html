@@ -1,21 +1,23 @@
-<!-- templates/map.html -->
+<!-- this_is_fine/templates/map.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Folium Map</title>
+    <title>Random Fires - OSRM Routes</title>
     <style>
-        #map {
-            width: 100%;
-            height: 500px;
-        }
+      #map {
+        width: 100%;
+        height: 600px;
+      }
     </style>
 </head>
 <body>
-    <h1>Folium Map Example</h1>
+    <h1>Fires + Station + Hydrant + Fastest Road</h1>
     <div id="map">
-        {{ map_html|safe }}
+      {{ map_html|safe }}
     </div>
+    <p>
+      <a href="{% url 'index_view' %}">Back</a>
+    </p>
 </body>
 </html>
