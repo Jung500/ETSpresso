@@ -1,0 +1,19 @@
+<!-- this_is_fine/this_is_fine/templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+</head>
+<body>
+    <h1>Generate Fires On One Map</h1>
+
+    <p>Click below to create 5 random fires in a bounding box near Rosemont,
+       each with 3 hydrants & 1 station. Refresh-based approach.
+    </p>
+
+    <button onclick="window.location.href='{% url 'random_fires_view' %}';">
+      Generate Fires
+    </button>
+</body>
+</html>

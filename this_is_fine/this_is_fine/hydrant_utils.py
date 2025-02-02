@@ -1,17 +1,12 @@
-# this_is_fine/hydrant_utils.py
+# this_is_fine/this_is_fine/hydrant_utils.py
 
 import csv
 import folium
 from folium.plugins import MarkerCluster
 
 def read_hydrant_data(file_path):
-    """
-    Reads hydrant data from CSV, returns a list of hydrant dicts.
-    Each dict has: Address, Jurisdiction, Owner, Status, etc., plus Coordinates=(lat, lon).
-    """
     hydrants = []
-    count = 0  # Example: limit to first 30 hydrants
-
+    count = 0
     with open(file_path, mode="r", encoding="utf-8") as file:
         reader = csv.DictReader(file)
         for row in reader:
@@ -26,31 +21,23 @@ def read_hydrant_data(file_path):
                     "Status": row["STATUT_ACTIF"],
                     "Abandoned": row["ABANDONNE_R"],
                     "Elevation": row["ELEVATION_TERRAIN"],
-                    "Coordinates": (lat, lon)
+                    "Coordinates": (lat, lon),
                 })
                 count += 1
-                if count >= 30:  # Example cap
+                if count >= 30:  # optional limit
                     break
             except ValueError:
-                print(f"Skipping invalid row: {row}")
-
+                print(f"Skipping invalid hydrant row: {row}")
     return hydrants
 
-
 def create_hydrant_map(hydrants, map_filename="hydrants_map.html"):
-    """
-    Given a list of hydrant dicts, creates a Folium map with clustering, 
-    then saves to map_filename.
-    """
     if not hydrants:
         print("No hydrants to map!")
         return
 
-    # Center map on first hydrant
     center = hydrants[0]["Coordinates"]
     m = folium.Map(location=center, zoom_start=12)
 
-    # Marker cluster
     marker_cluster = MarkerCluster(
         options={
             "disableClusteringAtZoom": 16,
@@ -58,7 +45,6 @@ def create_hydrant_map(hydrants, map_filename="hydrants_map.html"):
         }
     ).add_to(m)
 
-    # Add hydrants to cluster
     for hydrant in hydrants:
         lat, lon = hydrant["Coordinates"]
         folium.Marker(
@@ -75,13 +61,9 @@ def create_hydrant_map(hydrants, map_filename="hydrants_map.html"):
         ).add_to(marker_cluster)
 
     m.save(map_filename)
-    print(f"Map saved as {map_filename}")
-
+    print(f"Hydrant map saved as {map_filename}")
 
 def read_fire_stations(file_path):
-    """
-    Reads fire station data from CSV, returns a list of dicts with Station, Address, City, etc.
-    """
     fire_stations = []
     with open(file_path, mode="r", encoding="utf-8") as file:
         reader = csv.DictReader(file)
@@ -99,28 +81,26 @@ def read_fire_stations(file_path):
                     "Coordinates": (lat, lon),
                 })
             except ValueError:
-                print(f"Skipping invalid row: {row}")
+                print(f"Skipping invalid station row: {row}")
     return fire_stations
 
-
 def create_fire_map(hydrants, fire_stations, map_filename="fire_map.html"):
-    """
-    Creates a Folium map of hydrants (blue) and fire stations (red) 
-    and saves to map_filename.
-    """
     if not hydrants and not fire_stations:
         print("No locations to map!")
         return
 
-    # Center around first hydrant or station
-    center = hydrants[0]["Coordinates"] if hydrants else fire_stations[0]["Coordinates"]
+    if hydrants:
+        center = hydrants[0]["Coordinates"]
+    else:
+        center = fire_stations[0]["Coordinates"]
+
     m = folium.Map(location=center, zoom_start=12)
 
-    # Add hydrants
+    # Add hydrants (blue)
     for hydrant in hydrants:
         lat, lon = hydrant["Coordinates"]
         folium.Marker(
-            location=[lat, lon],
+            [lat, lon],
             popup=(
                 f"<b>Hydrant Address:</b> {hydrant['Address']}<br>"
                 f"<b>Status:</b> {hydrant['Status']}<br>"
@@ -130,11 +110,11 @@ def create_fire_map(hydrants, fire_stations, map_filename="fire_map.html"):
             icon=folium.Icon(color="blue", icon="tint")
         ).add_to(m)
 
-    # Add fire stations
+    # Add fire stations (red)
     for station in fire_stations:
         lat, lon = station["Coordinates"]
         folium.Marker(
-            location=[lat, lon],
+            [lat, lon],
             popup=(
                 f"<b>Fire Station:</b> {station['Station']}<br>"
                 f"<b>Address:</b> {station['Address']}<br>"
@@ -145,4 +125,4 @@ def create_fire_map(hydrants, fire_stations, map_filename="fire_map.html"):
         ).add_to(m)
 
     m.save(map_filename)
-    print(f"Map saved as {map_filename}")
+    print(f"Fire map saved as {map_filename}")
