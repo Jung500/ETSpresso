@@ -160,7 +160,7 @@ def fires_map_view(request):
         (45.58, -73.62),
         (45.53, -73.62),
     ]
-    folium.PolyLine(box_coords, color='green', weight=3).add_to(m)
+    # folium.PolyLine(box_coords, color='green', weight=3).add_to(m)
 
     # We'll pick stations in pairs: for every 2 fires, 1 station.
     # Approach:
