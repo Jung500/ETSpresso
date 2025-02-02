@@ -1,0 +1,7 @@
+*.pyc
+__pycache__/
+this_is_fine/__pycache__/
+this_is_fine/this_is_fine/__pycache__/
+
+.venv
+fire_map.html
