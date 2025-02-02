@@ -145,8 +145,8 @@ def fires_map_view(request):
     request.session['fires'] = fires
 
     # load data
-    hydrants_csv = os.path.join(settings.BASE_DIR, "aqu_borneincendie_p.csv")
-    stations_csv = os.path.join(settings.BASE_DIR, "casernes.csv")
+    hydrants_csv = os.path.join(settings.BASE_DIR, "resources/aqu_borneincendie_p.csv")
+    stations_csv = os.path.join(settings.BASE_DIR, "resources/casernes.csv")
 
     hydrants = read_hydrants(hydrants_csv)
     stations = read_stations(stations_csv)
