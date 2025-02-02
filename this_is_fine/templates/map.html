@@ -1,20 +1,24 @@
+<!-- this_is_fine/this_is_fine/templates/map.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Folium Map</title>
-    <style>
-        #map {
-            width: 100%;
-            height: 500px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Combined Map</title>
+  <style>
+    /* Ensures Folium map covers the screen (or at least a chunk of it) */
+    #map {
+      width: 100%;
+      height: 80vh; /* or 500px, etc. */
+    }
+  </style>
 </head>
 <body>
-    <h1>Fire hydrants</h1>
-    <div id="map">
-        {{ map_html|safe }}
-    </div>
+
+  <h1>Combined Fire Stations + Hydrants Map</h1>
+  
+  <div id="map">
+    {{ map_html|safe }}
+  </div>
+
 </body>
 </html>
