@@ -6,23 +6,21 @@ import random
 import csv
 import requests
 import joblib
-
-from django.shortcuts import render
-from django.conf import settings
 from datetime import datetime
+
+from django.conf import settings
+from django.shortcuts import render
 import folium
 
-
-#######################################
-# 1) Load the ML model at module level
-#######################################
+###################################
+# 1) Load the ML model once
+###################################
 MODEL_PATH = os.path.join(settings.BASE_DIR, "severity_model.pkl")
 severity_model = joblib.load(MODEL_PATH)
 
-
-#######################################
-# 2) Utility Functions
-#######################################
+###################################
+# 2) CSV Reading & Helpers
+###################################
 
 def read_hydrants(csv_path):
     hydrants = []
@@ -41,7 +39,7 @@ def read_hydrants(csv_path):
                 except ValueError:
                     pass
     except FileNotFoundError:
-        print("Hydrants CSV missing:", csv_path)
+        print("Hydrants CSV not found at", csv_path)
     return hydrants
 
 def read_stations(csv_path):
@@ -61,11 +59,12 @@ def read_stations(csv_path):
                 except ValueError:
                     pass
     except FileNotFoundError:
-        print("Stations CSV missing:", csv_path)
+        print("Stations CSV not found at", csv_path)
     return stations
 
 def haversine_distance(lat1, lon1, lat2, lon2):
     R = 6371000
+    import math
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
     a = (math.sin(dlat/2)**2 +
@@ -76,21 +75,21 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 
 def add_osrm_route(m, station, hydrant):
     """
-    Calls OSRM to get station->hydrant route, draws a blue line on the Folium map.
+    Station->Hydrant route in BLUE, using OSRM.
     """
     s_lat, s_lon = station["lat"], station["lon"]
     h_lat, h_lon = hydrant["lat"], hydrant["lon"]
 
     url = (f"https://router.project-osrm.org/route/v1/driving/"
-           f"{s_lon},{s_lat};{h_lon},{h_lat}"
-           f"?overview=full&geometries=geojson")
+           f"{s_lon},{s_lat};{h_lon},{h_lat}?"
+           f"overview=full&geometries=geojson")
 
     try:
         resp = requests.get(url, timeout=5)
         data = resp.json()
         if data.get("code") == "Ok":
-            coords = data["routes"][0]["geometry"]["coordinates"]  # list of [lon,lat]
-            folium_coords = [(c[1], c[0]) for c in coords]          # invert to [lat,lon]
+            coords = data["routes"][0]["geometry"]["coordinates"]  # [ [lon,lat], ... ]
+            folium_coords = [(c[1], c[0]) for c in coords]          # [ (lat,lon), ... ]
             folium.PolyLine(
                 locations=folium_coords,
                 color="blue",
@@ -100,56 +99,58 @@ def add_osrm_route(m, station, hydrant):
         else:
             print("OSRM route error:", data.get("code"))
     except requests.exceptions.RequestException as e:
-        print("OSRM request failed:", e)
+        print("OSRM request error:", e)
 
 
-#######################################
-# 3) The Main View with 1-Station-per-2-Fires logic
-#######################################
+###################################
+# 3) The Main View
+###################################
 
 def fires_map_view(request):
     """
-    A refresh-based approach:
-      - ?action=add => add 1 random fire to session
-      - ?action=clear => remove all fires
-    We only assign 1 station for every 2 fires:
-      - The first fire of a pair picks a new station
-      - The second fire of that pair reuses the same station
-    We also pick 3 hydrants for each fire, do OSRM routes, 
-    and color the fire marker based on ML-predicted severity (low/med/high).
+    Lets user:
+     - Add random fires (Add Fire)
+     - Clear all fires
+     - Toggle "Manual" mode => click map to place a fire
+    Only 1 station per 2 fires, 3 hydrants each, OSRM routes in blue, ML severity coloring.
     """
-
-    # 1) handle user actions
-    action = request.GET.get('action')
+    # session-based list of fires
     fires = request.session.get('fires', [])
-    # we'll also store 'pair_count' to handle station picking
-    # for each pair of fires, we pick a new station
-    pair_count = request.session.get('pair_count', 0)
+
+    # parse query
+    action = request.GET.get('action')   # add, clear, place
+    manual = request.GET.get('manual','0')  # '1' or '0'
+    lat_str = request.GET.get('lat')
+    lon_str = request.GET.get('lon')
 
     if action == 'clear':
         fires = []
-        pair_count = 0
     elif action == 'add':
-        # bounding box near Rosemont
+        # random bounding box near Rosemont
         MIN_LAT, MAX_LAT = 45.53, 45.58
         MIN_LON, MAX_LON = -73.62, -73.55
-
         f_lat = random.uniform(MIN_LAT, MAX_LAT)
         f_lon = random.uniform(MIN_LON, MAX_LON)
-
-        # store new fire
         fires.append({"lat": f_lat, "lon": f_lon})
-    # update session
-    request.session['fires'] = fires
-    request.session['pair_count'] = pair_count
+    elif action == 'place':
+        # user manually clicks => lat/lon from GET
+        if lat_str and lon_str:
+            try:
+                f_lat = float(lat_str)
+                f_lon = float(lon_str)
+                fires.append({"lat": f_lat, "lon": f_lon})
+            except ValueError:
+                pass
 
-    # 2) load CSV data
+    request.session['fires'] = fires
+
+    # read CSV
     hydrants_csv = os.path.join(settings.BASE_DIR, "aqu_borneincendie_p.csv")
     stations_csv = os.path.join(settings.BASE_DIR, "casernes.csv")
     hydrants = read_hydrants(hydrants_csv)
     stations = read_stations(stations_csv)
 
-    # 3) create Folium map
+    # create Folium map
     m = folium.Map(location=[45.55, -73.58], zoom_start=13)
 
     # bounding box in green
@@ -162,90 +163,105 @@ def fires_map_view(request):
     ]
     folium.PolyLine(box_coords, color='green', weight=3).add_to(m)
 
-    # We'll pick stations in pairs: for every 2 fires, 1 station.
-    # Approach:
-    # - We'll loop over the fires in increments of 2
-    # - For the first fire in that pair, find nearest station
-    # - For the second fire, reuse that station
-
-    # chunk fires in pairs
+    # group fires in pairs => 1 station per 2 fires
     pair_of_fires = []
     for i in range(0, len(fires), 2):
-        chunk = fires[i:i+2]  # up to 2 fires
+        chunk = fires[i:i+2]
         pair_of_fires.append(chunk)
 
-    # For each chunk (1 or 2 fires),
-    # we pick the station for the first fire, second fire reuses it
-    chunk_index = 0
+    # process each chunk
+    chunk_idx = 0
     for chunk in pair_of_fires:
-        chunk_index += 1
+        chunk_idx += 1
+        # pick station based on the first fire in chunk
+        if not chunk:
+            continue
+        first_fire = chunk[0]
 
-        # The "leading" fire = chunk[0]
-        main_fire = chunk[0]
-
-        # find nearest station for that main_fire
+        # find nearest station
         best_station = None
-        best_dist = float("inf")
-        for s in stations:
-            d_s = haversine_distance(main_fire["lat"], main_fire["lon"], s["lat"], s["lon"])
-            if d_s < best_dist:
-                best_station = s
-                best_dist = d_s
+        best_dist = float('inf')
+        for st in stations:
+            dist_st = haversine_distance(first_fire["lat"], first_fire["lon"], st["lat"], st["lon"])
+            if dist_st < best_dist:
+                best_dist = dist_st
+                best_station = st
 
-        # now we have a station for this chunk
-        # process each fire in chunk (1 or 2)
+        # for each fire in chunk
         for idx_in_chunk, single_fire in enumerate(chunk, start=1):
-            # pick 3 hydrants
-            hydrants_dist = []
+            # find 3 hydrants
+            hydr_dist = []
             for h in hydrants:
-                dh = haversine_distance(single_fire["lat"], single_fire["lon"], h["lat"], h["lon"])
-                hydrants_dist.append({**h, "dist": dh})
-            hydrants_dist.sort(key=lambda x: x["dist"])
-            top3 = hydrants_dist[:3]
+                d_h = haversine_distance(single_fire["lat"], single_fire["lon"], h["lat"], h["lon"])
+                hydr_dist.append({**h, "dist": d_h})
+            hydr_dist.sort(key=lambda x: x["dist"])
+            top3 = hydr_dist[:3]
 
-            # compute severity with the ML model
-            # features: [lat, lon, dist_station, time_of_day]
-            from datetime import datetime
+            # predict severity => color
             now_hour = datetime.now().hour
-            station_dist = haversine_distance(single_fire["lat"], single_fire["lon"], best_station["lat"], best_station["lon"]) if best_station else 0
+            station_dist = haversine_distance(
+                single_fire["lat"], single_fire["lon"],
+                best_station["lat"], best_station["lon"]
+            ) if best_station else 0
             severity = severity_model.predict([[single_fire["lat"], single_fire["lon"], station_dist, now_hour]])[0]
-
-            color_map = {
-                "low": "green",
-                "medium": "orange",
-                "high": "red"
-            }
+            color_map = {"low":"green","medium":"orange","high":"red"}
             fire_color = color_map.get(severity, "red")
 
-            # Mark the fire (with ML severity color)
+            # place the fire marker
             folium.Marker(
                 [single_fire["lat"], single_fire["lon"]],
                 icon=folium.Icon(color=fire_color, icon='fire'),
                 popup=f"Fire => severity={severity}"
             ).add_to(m)
 
-            # Mark station in green if we have it
-            if best_station and idx_in_chunk == 1:
-                # place the station marker only for the first fire in chunk 
-                # (to avoid repeated station marker)
+            # place station marker for the chunk's first fire only
+            if idx_in_chunk == 1 and best_station:
                 folium.Marker(
                     [best_station["lat"], best_station["lon"]],
                     icon=folium.Icon(color='green', icon='home'),
-                    popup=f"Station for chunk {chunk_index}"
+                    popup=f"Station for chunk #{chunk_idx}"
                 ).add_to(m)
 
-            # Mark 3 hydrants in blue + OSRM route for each
+            # place hydrants + OSRM route
             if best_station:
-                for hid_idx, hydr in enumerate(top3, start=1):
+                for hyd_i, hyd in enumerate(top3, start=1):
                     folium.Marker(
-                        [hydr["lat"], hydr["lon"]],
+                        [hyd["lat"], hyd["lon"]],
                         icon=folium.Icon(color='blue', icon='tint'),
-                        popup=f"Hydrant #{hid_idx}"
+                        popup=f"Hydrant {hyd_i}"
                     ).add_to(m)
+                    add_osrm_route(m, best_station, hyd)
 
-                    # add route station->hydr
-                    add_osrm_route(m, best_station, hydr)
-
-    # finalize map
+    # convert to HTML
+    map_name = m.get_name()  # e.g. "map_f3b2d1067ab..."
     map_html = m._repr_html_()
-    return render(request, 'fires_map.html', {"map_html": map_html})
+
+    # If manual=1 => we add a JS snippet that references the real map object name
+    extra_js = ""
+    if manual == '1':
+        extra_js = f"""
+        <script>
+        document.addEventListener("DOMContentLoaded", function() {{
+          // The real Folium map object is window["{map_name}"]
+          let mapVar = window["{map_name}"];
+          if (!mapVar) {{
+            console.log("Could not find folium map object named {map_name}");
+            return;
+          }}
+          console.log("Manual mode ON => click map to place fires");
+          mapVar.on('click', function(e) {{
+            let lat = e.latlng.lat;
+            let lon = e.latlng.lng;
+            // request => ?action=place&lat=..&lon=..&manual=1
+            window.location.href = '?action=place&lat=' + lat + '&lon=' + lon + '&manual=1';
+          }});
+        }});
+        </script>
+        """
+
+    # pass everything to the template
+    return render(request, 'fires_map.html', {
+        "map_html": map_html,
+        "manual": manual,
+        "extra_js": extra_js,
+    })

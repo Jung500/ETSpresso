@@ -1,11 +1,12 @@
+<!-- this_is_fine/templates/fires_map.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>2 Fires = 1 Station (Pairs) + ML Severity</title>
+    <title>Click to Place Fire / Random + ML Severity</title>
     <style>
       body {
-        margin: 0; 
+        margin: 0;
         padding: 0;
       }
       #map {
@@ -31,7 +32,7 @@
         margin-bottom: 6px;
         padding: 6px;
         border: 1px solid #ccc;
-        width: 90px;
+        width: 120px;
       }
       #top-right a:hover {
         background: #ddd;
@@ -41,11 +42,18 @@
 <body>
   <div id="map">
     <div id="top-right">
-      <a href="?action=add">Add Fire</a>
+      <a href="?action=add">Add Fire (Random)</a>
       <a href="?action=clear">Clear Fires</a>
+      {% if manual == "1" %}
+        <a href="?manual=0">Manual OFF</a>
+      {% else %}
+        <a href="?manual=1">Manual ON</a>
+      {% endif %}
     </div>
 
     {{ map_html|safe }}
   </div>
+
+  {{ extra_js|safe }}
 </body>
 </html>
