@@ -14,7 +14,7 @@ def create_fire_map(hydrants, fire_stations, map_filename="fire_map.html"):
     center = hydrants[0]["Coordinates"] if hydrants else fire_stations[0]["Coordinates"]
     m = folium.Map(location=center, zoom_start=12)
 
-    # 🔹 Define the Square Bounding Box (inside Montreal)
+    # Define the Square Bounding Box (inside Montreal)
     square_bounds = [
         [45.5500, -73.7000],  # Northwest
         [45.5500, -73.5000],  # Northeast
@@ -23,7 +23,7 @@ def create_fire_map(hydrants, fire_stations, map_filename="fire_map.html"):
         [45.5500, -73.7000]   # Close the square
     ]
 
-    # 🔹 Overlay the bounding box on the map
+    # Overlay the bounding box on the map
     folium.PolyLine(
         square_bounds, 
         color="red", 
@@ -42,7 +42,7 @@ def create_fire_map(hydrants, fire_stations, map_filename="fire_map.html"):
         icon=folium.Icon(color="red", icon="fire", prefix="fa")
     ).add_to(m)
 
-    # 🔹 Add Fire Hydrants (blue markers)
+    # Add Fire Hydrants (blue markers)
     for hydrant in hydrants:
         lat, lon = hydrant["Coordinates"]
         folium.Marker(
@@ -56,7 +56,7 @@ def create_fire_map(hydrants, fire_stations, map_filename="fire_map.html"):
             icon=hydrant_icon
         ).add_to(m)
 
-    # 🔹 Add Fire Stations (red markers)
+    # Add Fire Stations (red markers)
     for station in fire_stations:
         lat, lon = station["Coordinates"]
         folium.Marker(
@@ -70,6 +70,6 @@ def create_fire_map(hydrants, fire_stations, map_filename="fire_map.html"):
             icon=fireStation_icon
         ).add_to(m)
 
-    # 🔹 Save the updated map
+    # Save the updated map
     m.save(f"maps/static/{map_filename}")
     print(f"Map saved as maps/static/{map_filename}")
