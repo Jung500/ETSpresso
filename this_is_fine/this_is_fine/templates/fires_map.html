@@ -3,12 +3,9 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Add/Remove Fires + 3 Hydrants + OSRM Routes</title>
+    <title>Fires + AI Severity</title>
     <style>
-      body {
-        margin: 0; 
-        padding: 0;
-      }
+      body { margin: 0; padding: 0; }
       #map {
         width: 100%;
         height: 100vh;
@@ -26,8 +23,8 @@
       #top-right a {
         display: block;
         text-align: center;
-        text-decoration: none;
         background: #eee;
+        text-decoration: none;
         color: #333;
         margin-bottom: 6px;
         padding: 6px;
@@ -41,13 +38,10 @@
 </head>
 <body>
   <div id="map">
-    <!-- Two top-right links: ?action=add, ?action=clear -->
     <div id="top-right">
       <a href="?action=add">Add Fire</a>
       <a href="?action=clear">Clear Fires</a>
     </div>
-
-    <!-- Insert Folium's map HTML here -->
     {{ map_html|safe }}
   </div>
 </body>
