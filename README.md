@@ -1,6 +1,5 @@
 ```
-py -m pip install django
-py -m pip install folium
+py -m pip install -r requirements.txt
 
 cd this_is_fine
 
