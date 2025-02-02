@@ -1,0 +1,16 @@
+<!-- this_is_fine/templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+</head>
+<body>
+    <h1>Generate Fires With Routes</h1>
+    <p>This will create 5 random fires near Rosemont, each with nearest station, hydrant, and route.</p>
+
+    <button onclick="window.location.href='{% url 'random_fires_view' %}'">
+      Generate Fires
+    </button>
+</body>
+</html>

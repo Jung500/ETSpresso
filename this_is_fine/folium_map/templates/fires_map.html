@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>2 Fires = 1 Station (Pairs) + ML Severity</title>
+    <style>
+      body {
+        margin: 0; 
+        padding: 0;
+      }
+      #map {
+        width: 100%;
+        height: 100vh;
+        position: relative;
+      }
+      #top-right {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 9999;
+        background: rgba(255,255,255,0.8);
+        padding: 10px;
+        border-radius: 5px;
+      }
+      #top-right a {
+        display: block;
+        text-align: center;
+        background: #eee;
+        text-decoration: none;
+        color: #333;
+        margin-bottom: 6px;
+        padding: 6px;
+        border: 1px solid #ccc;
+        width: 90px;
+      }
+      #top-right a:hover {
+        background: #ddd;
+      }
+    </style>
+</head>
+<body>
+  <div id="map">
+    <div id="top-right">
+      <a href="?action=add">Add Fire</a>
+      <a href="?action=clear">Clear Fires</a>
+    </div>
+
+    {{ map_html|safe }}
+  </div>
+</body>
+</html>
